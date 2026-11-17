@@ -798,3 +798,16 @@ select, .metric-control select, .trial-control select, .robustness-control selec
   .pipeline-step { transition:transform .2s ease, border-color .2s ease, box-shadow .2s ease; }
   .pipeline-step:hover { transform:translateY(-3px); border-color:#79bdb4; box-shadow:0 9px 20px rgba(30,73,79,.09); }
 }
+
+/* Keep diagnostic plots wide and their vector labels readable at normal zoom. */
+.planner-chart-grid { grid-template-columns:minmax(0,1fr); }
+.planner-chart-card:nth-child(3) { grid-column:auto; }
+.planner-chart-card { padding:clamp(15px,2vw,24px); }
+.planner-chart-card h4 { font-size:1.08rem; }
+.planner-chart-card > p { color:#465f72; font-size:.86rem; line-height:1.5; }
+.planner-chart-card svg { width:100%; height:auto; }
+.planner-chart-gridline { stroke:#cbd9e0; stroke-width:1.25; }
+.planner-chart-label { fill:#334b5f; font:600 13px var(--mono,monospace); }
+.planner-chart-value { fill:#1f3b50; font:700 13px var(--mono,monospace); }
+.planner-chart-axis { fill:#344f64; font:700 12px var(--mono,monospace); letter-spacing:.045em; }
+.planner-chart-empty { fill:#4b6477; font:600 14px var(--mono,monospace); }

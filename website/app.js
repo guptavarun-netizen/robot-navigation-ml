@@ -496,7 +496,7 @@ function initPlanner(bundle) {
     series.forEach((s) => {
       if (!s.data.length) return;
       const d=s.data.map((p,i)=>`${i?'L':'M'} ${x(p.t).toFixed(1)} ${y(p.v).toFixed(1)}`).join(' ');
-      parts.push(`<path d="${d}" fill="none" stroke="${s.color}" stroke-width="2" ${s.dash?'stroke-dasharray="5 4"':''}><title>${s.name}</title></path>`);
+      parts.push(`<path d="${d}" fill="none" stroke="${s.color}" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" ${s.dash?'stroke-dasharray="7 5"':''}><title>${s.name}</title></path>`);
     });
     parts.push(`<text class="planner-chart-axis" x="${m.left+plotW/2}" y="${height-2}" text-anchor="middle">SIMULATED TIME · SECONDS</text>`);
     parts.push(`<text class="planner-chart-axis" transform="translate(13 ${m.top+plotH/2}) rotate(-90)" text-anchor="middle">${options.axisLabel || 'VALUE'}</text>`);
