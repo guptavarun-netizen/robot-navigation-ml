@@ -1,4 +1,4 @@
-"""Run 100 deterministic, fixed-goal trials of the pygame navigation controller.
+"""Run 100 deterministic, unique start/goal trials of the pygame controller.
 
 Run with: .venv/bin/python run_navigation_trials.py
 Outputs: results/navigation_trials.csv and results/navigation_trial_steps.csv
@@ -17,28 +17,27 @@ from simulator import (
 
 ROOT = Path(__file__).resolve().parent
 WEBSITE_RESULTS = ROOT / "website" / "assets" / "results"
-START = (115.0, 115.0)
-# Preserve the original ten goals first, then add a reproducible, spatially
-# spread set of collision-free targets across the same simulator field.
+# Preserve the original ten goals first, then add reproducible, spatially
+# spread start/goal pairs across the same simulator field.
 ORIGINAL_GOALS = [(950, 620), (150, 620), (600, 150), (700, 600), (400, 600),
                   (950, 500), (150, 500), (700, 200), (400, 500), (950, 250)]
 TRIAL_COUNT = 100
 GOAL_SEED = 20261117
-SUMMARY_FIELDS = ["trial_id", "goal_x_px", "goal_y_px", "status", "goal_reached",
+SUMMARY_FIELDS = ["trial_id", "start_x_px", "start_y_px", "goal_x_px", "goal_y_px", "status", "goal_reached",
                   "steps", "elapsed_s", "path_length_px", "straight_line_px",
                   "path_efficiency", "collision_count", "mean_inference_ms"]
-STEP_FIELDS = ["trial_id", "time_s", "x_px", "y_px", "heading_rad", "goal_x_px",
+STEP_FIELDS = ["trial_id", "time_s", "x_px", "y_px", "start_x_px", "start_y_px", "heading_rad", "goal_x_px",
                "goal_y_px", "predicted_class", "inference_ms", "collision_count",
                "path_length_px", "goal_reached", "trial_status"]
 
 
-def build_goal_batch():
+def build_scenario_batch():
     goals = list(ORIGINAL_GOALS)
     candidates = [
         (x, y)
         for y in range(85, HEIGHT - 84, 20)
         for x in range(85, WIDTH - 84, 20)
-        if not collides((x, y), WALLS) and math.dist(START, (x, y)) >= 250
+        if not collides((x, y), WALLS)
     ]
     random.Random(GOAL_SEED).shuffle(candidates)
     for candidate in candidates:
@@ -48,11 +47,19 @@ def build_goal_batch():
                 break
     if len(goals) != TRIAL_COUNT:
         raise RuntimeError(f"Could only create {len(goals)} of {TRIAL_COUNT} unique free-space goals")
-    return goals
+    starts = []
+    start_pool = [point for point in candidates if point not in set(goals)]
+    for goal in goals:
+        available = [point for point in start_pool if point not in starts and math.dist(point, goal) >= 250]
+        if not available:
+            raise RuntimeError(f"Could not choose a distinct start at least 250 px from goal {goal}")
+        start = random.Random(GOAL_SEED + len(starts)).choice(available)
+        starts.append(start)
+    return list(zip(starts, goals))
 
 
-def run_trial(model, trial_id, goal):
-    position = list(START)
+def run_trial(model, trial_id, start, goal):
+    position = list(start)
     heading = 0.0
     collisions = 0
     path_length = 0.0
@@ -92,6 +99,7 @@ def run_trial(model, trial_id, goal):
             status = "SUCCESS"
         rows.append({"trial_id": trial_id, "time_s": f"{steps * dt:.3f}",
                      "x_px": f"{position[0]:.2f}", "y_px": f"{position[1]:.2f}",
+                     "start_x_px": start[0], "start_y_px": start[1],
                      "heading_rad": f"{heading:.4f}", "goal_x_px": goal[0],
                      "goal_y_px": goal[1], "predicted_class": label,
                      "inference_ms": f"{latency:.4f}", "collision_count": collisions,
@@ -99,15 +107,16 @@ def run_trial(model, trial_id, goal):
                      "trial_status": status if reached or steps == int(MAX_TRIAL_TIME_S * FPS) else "RUNNING"})
         if reached:
             break
-    straight = math.dist(START, goal)
-    summary = {"trial_id": trial_id, "goal_x_px": goal[0], "goal_y_px": goal[1],
+    straight = math.dist(start, goal)
+    summary = {"trial_id": trial_id, "start_x_px": start[0], "start_y_px": start[1],
+               "goal_x_px": goal[0], "goal_y_px": goal[1],
                "status": status, "goal_reached": int(status == "SUCCESS"),
                "steps": steps, "elapsed_s": f"{steps / FPS:.3f}",
                "path_length_px": f"{path_length:.2f}", "straight_line_px": f"{straight:.2f}",
                # Measure progress to the actual terminal position. Because a
                # goal has a 20 px acceptance radius, using the goal center can
                # make a nominal path-efficiency ratio exceed one.
-               "path_efficiency": f"{math.dist(START, position) / path_length:.4f}" if path_length else "0",
+               "path_efficiency": f"{math.dist(start, position) / path_length:.4f}" if path_length else "0",
                "collision_count": collisions,
                "mean_inference_ms": f"{sum(inference_ms) / len(inference_ms):.4f}"}
     return summary, rows
@@ -117,15 +126,15 @@ def main():
     if not MODEL_PATH.exists():
         raise FileNotFoundError("Train models first: .venv/bin/python train_models.py")
     model = load_model()
-    goals = build_goal_batch()
+    scenarios = build_scenario_batch()
     all_summaries, all_steps = [], []
-    for trial_id, goal in enumerate(goals, 1):
-        if collides(START, WALLS) or collides(goal, WALLS):
-            raise ValueError(f"Invalid start or goal in trial {trial_id}: {goal}")
-        summary, steps = run_trial(model, trial_id, goal)
+    for trial_id, (start, goal) in enumerate(scenarios, 1):
+        if collides(start, WALLS) or collides(goal, WALLS):
+            raise ValueError(f"Invalid start or goal in trial {trial_id}: {start} -> {goal}")
+        summary, steps = run_trial(model, trial_id, start, goal)
         all_summaries.append(summary)
         all_steps.extend(steps)
-        print(f"Trial {trial_id:03d}/{len(goals)} {summary['status']}: {summary['steps']} steps, "
+        print(f"Trial {trial_id:03d}/{len(scenarios)} {summary['status']}: {summary['steps']} steps, "
               f"{summary['path_length_px']} px, {summary['collision_count']} collisions")
     RESULTS_DIR.mkdir(exist_ok=True)
     WEBSITE_RESULTS.mkdir(parents=True, exist_ok=True)
@@ -138,7 +147,7 @@ def main():
             writer.writeheader()
             writer.writerows(rows)
         shutil.copy2(path, WEBSITE_RESULTS / name)
-    print(f"Completed {len(all_summaries)} trials using goal seed {GOAL_SEED}; results saved under results/ and website/assets/results/")
+    print(f"Completed {len(all_summaries)} unique start/goal trials using seed {GOAL_SEED}; results saved under results/ and website/assets/results/")
 
 
 if __name__ == "__main__":

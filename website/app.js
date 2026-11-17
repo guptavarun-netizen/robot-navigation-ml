@@ -6,8 +6,8 @@ const DATA = {
   turtlebotDropout: 'assets/results/turtlebot_recorded_dropout.csv',
   realGoalValidation: 'assets/results/real_goal_run_validation.csv',
   realRunQuality: 'assets/results/real_run_sensor_quality.csv',
-  trials: 'assets/results/navigation_trial_steps.csv',
-  trialSummary: 'assets/results/navigation_trials.csv',
+  trials: 'assets/results/navigation_trial_steps.csv?v=unique-start-goals-2026-11-17',
+  trialSummary: 'assets/results/navigation_trials.csv?v=unique-start-goals-2026-11-17',
   browserModels: 'assets/models/goal_navigation_models.json'
 };
 
@@ -294,11 +294,13 @@ function drawTrial(trialId) {
   const py = (value) => top + ((710 - Number(value)) / (710 - 60)) * (height - top - bottom);
   const step = Math.max(1, Math.ceil(rows.length / 360));
   const sampled = rows.filter((_, index) => index % step === 0 || index === rows.length - 1);
-  const path = sampled.map((row) => `${px(row.x_px).toFixed(1)},${py(row.y_px).toFixed(1)}`).join(' ');
   const first = rows[0], last = rows.at(-1);
+  const startX = Number(first.start_x_px), startY = Number(first.start_y_px);
+  const path = [`${px(startX).toFixed(1)},${py(startY).toFixed(1)}`,
+    ...sampled.map((row) => `${px(row.x_px).toFixed(1)},${py(row.y_px).toFixed(1)}`)].join(' ');
   const grid = [0, 1, 2, 3, 4].map((i) => `<line class="sim-grid" x1="${left}" x2="${width - right}" y1="${top + i * ((height - top - bottom) / 4)}" y2="${top + i * ((height - top - bottom) / 4)}"/>`).join('');
   const obstacles = [[280, 180, 25, 260], [500, 330, 250, 25], [830, 150, 25, 250]].map(([x, y, w, h]) => `<rect class="sim-obstacle" x="${px(x)}" y="${py(y + h)}" width="${(w / 980) * (width - left - right)}" height="${(h / 650) * (height - top - bottom)}"/>`).join('');
-  svg.innerHTML = `<rect width="${width}" height="${height}" fill="#132235"/>${grid}${obstacles}<polyline class="sim-path" points="${path}"/><circle class="sim-start" cx="${px(first.x_px)}" cy="${py(first.y_px)}" r="6"/><circle class="sim-goal" cx="${px(last.goal_x_px)}" cy="${py(last.goal_y_px)}" r="11"/><circle class="sim-robot" cx="${px(last.x_px)}" cy="${py(last.y_px)}" r="5"/><text x="${left}" y="${height - 8}" fill="#7f929e" font-size="9" font-family="monospace">SIMULATOR FIELD / PIXELS</text>`;
+  svg.innerHTML = `<rect width="${width}" height="${height}" fill="#132235"/>${grid}${obstacles}<polyline class="sim-path" points="${path}"/><circle class="sim-start" cx="${px(startX)}" cy="${py(startY)}" r="7"><title>Start: ${startX}, ${startY}</title></circle><circle class="sim-goal" cx="${px(last.goal_x_px)}" cy="${py(last.goal_y_px)}" r="11"><title>Goal: ${last.goal_x_px}, ${last.goal_y_px}</title></circle><circle class="sim-robot" cx="${px(last.x_px)}" cy="${py(last.y_px)}" r="5"/><text x="${left}" y="${height - 8}" fill="#7f929e" font-size="9" font-family="monospace">SIMULATOR FIELD / PIXELS</text>`;
   document.querySelector('#sim-status').textContent = last.trial_status;
   document.querySelector('#sim-steps').textContent = rows.length.toLocaleString();
   document.querySelector('#sim-path').textContent = `${Number(last.path_length_px).toFixed(1)} px`;
@@ -318,7 +320,7 @@ function renderTrialComparison() {
   document.querySelector('#trial-median-time').textContent = median === null ? '—' : `${median.toFixed(1)} s`;
   document.querySelector('#trial-total-collisions').textContent = trialSummaryRows.reduce((sum, row) => sum + Number(row.collision_count), 0);
   renderTrialOutcomes();
-  document.querySelector('#trial-table-body').innerHTML = trialSummaryRows.map((row) => `<tr class="trial-row" data-trial="${row.trial_id}" aria-current="false"><td><button type="button" class="trial-row-button">#${row.trial_id}</button></td><td>${row.goal_x_px}, ${row.goal_y_px}</td><td><span class="trial-outcome ${row.status === 'SUCCESS' ? 'success' : 'timeout'}">${row.status}</span></td><td>${Number(row.steps).toLocaleString()}</td><td>${Number(row.elapsed_s).toFixed(2)}</td><td>${Number(row.path_length_px).toFixed(1)}</td><td>${Number(row.path_efficiency).toFixed(3)}</td><td>${row.collision_count}</td></tr>`).join('');
+  document.querySelector('#trial-table-body').innerHTML = trialSummaryRows.map((row) => `<tr class="trial-row" data-trial="${row.trial_id}" aria-current="false"><td><button type="button" class="trial-row-button">#${row.trial_id}</button></td><td>${row.start_x_px}, ${row.start_y_px}</td><td>${row.goal_x_px}, ${row.goal_y_px}</td><td><span class="trial-outcome ${row.status === 'SUCCESS' ? 'success' : 'timeout'}">${row.status}</span></td><td>${Number(row.steps).toLocaleString()}</td><td>${Number(row.elapsed_s).toFixed(2)}</td><td>${Number(row.path_length_px).toFixed(1)}</td><td>${Number(row.path_efficiency).toFixed(3)}</td><td>${row.collision_count}</td></tr>`).join('');
   document.querySelectorAll('.trial-row').forEach((row) => row.addEventListener('click', () => {
     document.querySelector('#trial-select').value = row.dataset.trial;
     drawTrial(row.dataset.trial);

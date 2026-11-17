@@ -26,13 +26,16 @@ if (host) {
     renderer.setClearColor(0x000000, 0);
     renderer.domElement.setAttribute('aria-hidden', 'true');
     host.append(renderer.domElement);
-    const codeLanes = innerWidth < 700 ? 8 : 16;
+    const codeLanes = innerWidth < 700 ? 26 : 76;
     for (let lane = 0; lane < codeLanes; lane += 1) {
       const code = document.createElement('span');
       code.className = 'code-rain';
-      code.textContent = Array.from({ length: 7 }, () => Math.random() > 0.5 ? '1' : '0').join('');
+      code.textContent = Array.from({ length: innerWidth < 700 ? 24 : 34 }, () => {
+        const symbols = '01ABCDEF';
+        return symbols[Math.floor(Math.random() * symbols.length)];
+      }).join('');
       code.style.setProperty('--code-x', `${(lane + 0.5) * (100 / codeLanes)}%`);
-      code.style.setProperty('--code-duration', `${11 + Math.random() * 13}s`);
+      code.style.setProperty('--code-duration', `${9 + Math.random() * 8}s`);
       code.style.setProperty('--code-delay', `${-Math.random() * 20}s`);
       host.append(code);
     }
@@ -40,17 +43,18 @@ if (host) {
     const network = new THREE.Group();
     scene.add(network);
     const globe = new THREE.Group();
-    globe.position.set(innerWidth < 700 ? 0.65 : 1.75, 0.05, 0);
+    globe.position.set(innerWidth < 700 ? 0.85 : 2.55, 0.05, 0);
+    globe.scale.setScalar(innerWidth < 700 ? 0.84 : 1.12);
     network.add(globe);
 
     const shell = new THREE.Mesh(
       new THREE.IcosahedronGeometry(1.45, 2),
-      new THREE.MeshBasicMaterial({ color: 0x00ff41, wireframe: true, transparent: true, opacity: 0.24 })
+      new THREE.MeshBasicMaterial({ color: 0x007f70, wireframe: true, transparent: true, opacity: 0.72 })
     );
     globe.add(shell);
     const innerShell = new THREE.Mesh(
       new THREE.IcosahedronGeometry(1.1, 1),
-      new THREE.MeshBasicMaterial({ color: 0x00f0ff, wireframe: true, transparent: true, opacity: 0.16 })
+      new THREE.MeshBasicMaterial({ color: 0x1689ad, wireframe: true, transparent: true, opacity: 0.42 })
     );
     innerShell.rotation.set(0.4, 0.25, 0.2);
     globe.add(innerShell);
@@ -65,7 +69,7 @@ if (host) {
       nodePositions.push(new THREE.Vector3(Math.cos(angle) * radius * 1.48, y * 1.48, Math.sin(angle) * radius * 1.48));
     }
     const nodeGeometry = new THREE.BufferGeometry().setFromPoints(nodePositions);
-    const nodes = new THREE.Points(nodeGeometry, new THREE.PointsMaterial({ color: 0x00f0ff, size: 0.045, transparent: true, opacity: 0.85, sizeAttenuation: true }));
+    const nodes = new THREE.Points(nodeGeometry, new THREE.PointsMaterial({ color: 0x00a895, size: 0.095, transparent: true, opacity: 1, sizeAttenuation: true }));
     globe.add(nodes);
 
     const edgeVertices = [];
@@ -79,12 +83,12 @@ if (host) {
     });
     const edgeGeometry = new THREE.BufferGeometry();
     edgeGeometry.setAttribute('position', new THREE.Float32BufferAttribute(edgeVertices, 3));
-    const fibers = new THREE.LineSegments(edgeGeometry, new THREE.LineBasicMaterial({ color: 0x00ff41, transparent: true, opacity: 0.22 }));
+    const fibers = new THREE.LineSegments(edgeGeometry, new THREE.LineBasicMaterial({ color: 0x087f70, transparent: true, opacity: 0.52 }));
     globe.add(fibers);
 
     const orbit = new THREE.Mesh(
       new THREE.TorusGeometry(1.9, 0.004, 4, 120),
-      new THREE.MeshBasicMaterial({ color: 0x00f0ff, transparent: true, opacity: 0.24 })
+      new THREE.MeshBasicMaterial({ color: 0x1689ad, transparent: true, opacity: 0.45 })
     );
     orbit.rotation.set(1.1, 0.25, -0.35);
     globe.add(orbit);
@@ -98,7 +102,7 @@ if (host) {
     }
     const dustGeometry = new THREE.BufferGeometry();
     dustGeometry.setAttribute('position', new THREE.BufferAttribute(dust, 3));
-    const particleField = new THREE.Points(dustGeometry, new THREE.PointsMaterial({ color: 0x85ffd2, size: 0.015, transparent: true, opacity: 0.4, sizeAttenuation: true }));
+    const particleField = new THREE.Points(dustGeometry, new THREE.PointsMaterial({ color: 0x368e90, size: 0.022, transparent: true, opacity: 0.48, sizeAttenuation: true }));
     scene.add(particleField);
 
     const pointer = { x: 0, y: 0, targetX: 0, targetY: 0 };
@@ -121,7 +125,8 @@ if (host) {
       camera.updateProjectionMatrix();
       renderer.setPixelRatio(Math.min(devicePixelRatio || 1, innerWidth < 700 ? 1 : 1.35));
       renderer.setSize(innerWidth, innerHeight);
-      globe.position.x = innerWidth < 700 ? 0.65 : 1.75;
+      globe.position.x = innerWidth < 700 ? 0.85 : 2.55;
+      globe.scale.setScalar(innerWidth < 700 ? 0.84 : 1.12);
     };
     const stopLoop = () => {
       if (!loopRunning) return;
@@ -154,10 +159,10 @@ if (host) {
         camera.position.z = 8 - scrollProgress * 0.55;
         camera.lookAt(0, 0, 0);
         if (!reducedMotion.matches) {
-          globe.rotation.y += dt * 0.12;
-          globe.rotation.x += dt * 0.035;
-          innerShell.rotation.y -= dt * 0.08;
-          orbit.rotation.z += dt * 0.045;
+          globe.rotation.y += dt * 0.24;
+          globe.rotation.x += dt * 0.07;
+          innerShell.rotation.y -= dt * 0.16;
+          orbit.rotation.z += dt * 0.12;
           particleField.rotation.y += dt * 0.003;
           network.scale.setScalar(1 + scrollProgress * 0.12);
         }

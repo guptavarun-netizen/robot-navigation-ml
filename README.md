@@ -16,10 +16,11 @@ navigation simulator, and analysis tools for TurtleBot3 sensor recordings.
   model and evaluation artifacts.
 - `simulator.py` runs a pygame 2D environment using `models/best_model.joblib`
   and logs goal trials to `results/simulation_log.csv`.
-- `run_navigation_trials.py` runs 100 repeatable goal scenarios (the original
-  10 plus 90 seeded, collision-free goals) with the same start, trained model,
-  controller, map, 60 Hz time step, and 60-second timeout. They are software
-  scenarios, not independent physical robot runs. It writes summary and
+- `run_navigation_trials.py` runs 100 repeatable scenarios with unique,
+  collision-free start/goal pairs (the original 10 goals plus 90 additional
+  goals), using the same trained model, controller, map, 60 Hz time step, and
+  60-second timeout. They are software scenarios, not independent physical
+  robot runs. It writes summary and
   per-step trajectory CSVs to
   `results/navigation_trials.csv` and `results/navigation_trial_steps.csv`,
   and refreshes the website's bundled copies.
@@ -52,7 +53,32 @@ navigation simulator, and analysis tools for TurtleBot3 sensor recordings.
 GitHub Pages deploys the static contents of `website/` through the workflow in
 `.github/workflows/pages.yml`. After pushing to `main`, enable **Settings → Pages
 → Build and deployment → GitHub Actions** if Pages is not enabled for the
-repository. The site URL is `https://<github-user>.github.io/robot-navigation-ml/`.
+repository. The published site is <https://guptavarun-netizen.github.io/robot-navigation-ml/>.
+
+## AI-use disclosure and citations
+
+AI assistance was used to organize parts of the project, implement and revise
+the website, and summarize repository-generated results. Dataset cleaning,
+model fitting, evaluation metrics, and simulator outcomes are produced by the
+listed project scripts. Interpretations should be checked against the saved
+tables, figures, source code, and cited dataset documentation.
+
+External datasets and technical references:
+
+- UCI Wall-Following Robot Navigation Data:
+  <https://archive.ics.uci.edu/dataset/194/wall+following+robot+navigation+data>
+- BARN benchmark paper and dataset page:
+  <https://www.cs.utexas.edu/~xiao/Research/BARN/BARN.html>
+- BARN dataset repository:
+  <https://github.com/miquelramirez/BARN_dataset>
+- TurtleBot3 recorded dataset repository:
+  <https://github.com/guilhermelawless/turtlebot3_datasets>
+- SCAND real-robot navigation dataset:
+  <https://www.cs.utexas.edu/~xiao/SCAND/SCAND.html>
+- NavWareSet multi-run navigation dataset:
+  <https://anr-navware.github.io/navwareset/>
+- Three.js documentation for the website's animated background:
+  <https://threejs.org/docs/>
 
 ## Requirements and setup
 
