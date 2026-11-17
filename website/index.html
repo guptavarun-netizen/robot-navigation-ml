@@ -89,6 +89,18 @@
         <article class="method-card method-card-dark"><span class="step">04</span><h3>Compare like with like</h3><p>All six methods use the same split. Hyperparameters are fixed in code; this run does not perform a search or tune on a validation set.</p><span class="method-tag">NO HYPERPARAMETER SEARCH</span></article>
       </div>
       <div class="split-visual" aria-label="Evaluation split: 80 percent training and 20 percent test"><div class="split-title"><span>OBSERVATIONS</span><span>5,456 TOTAL</span></div><div class="split-bar"><span>TRAIN / CV <b>4,364 · 80%</b></span><span>HELD-OUT TEST <b>1,092 · 20%</b></span></div><div class="split-foot"><span>CV estimates selection score on train only</span><span>Final metrics reported once on held-out split</span></div></div>
+      <figure class="training-pipeline" aria-labelledby="pipeline-title">
+        <div class="pipeline-heading"><div><span class="mini-label">MODEL WORKFLOW · TRAINING TO PREDICTION</span><h3 id="pipeline-title">How the trained classifier produces an action</h3></div><span class="pipeline-badge">NO TEST-SET TUNING</span></div>
+        <ol class="pipeline-steps" aria-label="Model training pipeline">
+          <li class="pipeline-step"><span class="pipeline-number">01</span><h4>Sensor dataset</h4><p>5,456 labeled rows; each row has 24 ultrasonic readings (V1–V24) and one movement class.</p><span class="pipeline-meta">4 ACTION CLASSES</span></li>
+          <li class="pipeline-step"><span class="pipeline-number">02</span><h4>Stratified split</h4><p>Keep class proportions in 4,364 training rows and reserve 1,092 rows for the final test.</p><span class="pipeline-meta">80% TRAIN · 20% TEST</span></li>
+          <li class="pipeline-step"><span class="pipeline-number">03</span><h4>Train-fold pipeline</h4><p>Compare six fixed classifiers with five-fold stratified CV. Imputation and scaling are fitted inside each training fold where needed.</p><span class="pipeline-meta">CV USES TRAIN DATA ONLY</span></li>
+          <li class="pipeline-step"><span class="pipeline-number">04</span><h4>Select and refit</h4><p>Choose the candidate with the best mean CV macro-F1. Gradient Boosting is selected, then refitted on all 4,364 training rows.</p><span class="pipeline-meta">SAVED MODEL: GRADIENT BOOSTING</span></li>
+          <li class="pipeline-step"><span class="pipeline-number">05</span><h4>Final evaluation</h4><p>Score the refitted model once on the untouched 1,092-row test set; report accuracy, macro-F1, balanced accuracy, and the confusion matrix.</p><span class="pipeline-meta">TEST SET DOES NOT SELECT</span></li>
+        </ol>
+        <div class="pipeline-inference"><div class="pipeline-inference-title"><span class="mini-label">AT PREDICTION TIME</span><span>ONE NEW SENSOR SNAPSHOT</span></div><div class="inference-flow"><span class="inference-node"><b>V1–V24</b><small>24 range readings</small></span><span class="inference-arrow" aria-hidden="true">→</span><span class="inference-node inference-model"><b>Saved Gradient Boosting</b><small>trained classifier</small></span><span class="inference-arrow" aria-hidden="true">→</span><span class="inference-node inference-output"><b>Action class 1–4</b><small>predicted movement label</small></span></div><p class="pipeline-limit"><b>Scope:</b> the model classifies a movement action from sensor readings. It does not plan a route or by itself guarantee collision-free, goal-reaching navigation.</p></div>
+        <figcaption>Preprocessing and model selection use only the training split. The held-out test split estimates final classification performance; simulation results are a separate evaluation.</figcaption>
+      </figure>
     </section>
 
     <section class="section results-section" id="results">
