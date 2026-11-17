@@ -1,0 +1,1 @@
+timestamp_s,x_m,y_m,yaw_rad,linear_velocity_x_m_s,linear_velocity_y_m_s,angular_velocity_z_rad_s,dx,dy,position_change_m,dt_s,implied_speed_m_s
