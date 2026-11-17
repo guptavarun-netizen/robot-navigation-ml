@@ -9,7 +9,7 @@
   <link rel="stylesheet" href="styles.css">
   <link rel="stylesheet" href="layout-fixes.css">
   <link rel="stylesheet" href="3d-effects.css">
-  <link rel="stylesheet" href="tech-theme.css?v=question-text-contrast-2026-11-17">
+  <link rel="stylesheet" href="tech-theme.css?v=model-pipeline-v2-2026-11-18">
   <script src="app.js?v=unique-start-goals-2026-11-17" defer></script>
   <script type="module" src="network-scene.js?v=question-text-contrast-2026-11-17"></script>
 </head>
@@ -98,7 +98,7 @@
           <li class="pipeline-step"><span class="pipeline-number">04</span><h4>Select and refit</h4><p>Choose the candidate with the best mean CV macro-F1. Gradient Boosting is selected, then refitted on all 4,364 training rows.</p><span class="pipeline-meta">SAVED MODEL: GRADIENT BOOSTING</span></li>
           <li class="pipeline-step"><span class="pipeline-number">05</span><h4>Final evaluation</h4><p>Score the refitted model once on the untouched 1,092-row test set; report accuracy, macro-F1, balanced accuracy, and the confusion matrix.</p><span class="pipeline-meta">TEST SET DOES NOT SELECT</span></li>
         </ol>
-        <div class="pipeline-inference"><div class="pipeline-inference-title"><span class="mini-label">AT PREDICTION TIME</span><span>ONE NEW SENSOR SNAPSHOT</span></div><div class="inference-flow"><span class="inference-node"><b>V1–V24</b><small>24 range readings</small></span><span class="inference-arrow" aria-hidden="true">→</span><span class="inference-node inference-model"><b>Saved Gradient Boosting</b><small>trained classifier</small></span><span class="inference-arrow" aria-hidden="true">→</span><span class="inference-node inference-output"><b>Action class 1–4</b><small>predicted movement label</small></span></div><p class="pipeline-limit"><b>Scope:</b> the model classifies a movement action from sensor readings. It does not plan a route or by itself guarantee collision-free, goal-reaching navigation.</p></div>
+        <div class="pipeline-inference"><div class="pipeline-inference-title"><span class="mini-label">AT PREDICTION TIME · ALL SIX CLASSIFIERS</span><span>ONE NEW SENSOR SNAPSHOT</span></div><div class="inference-flow"><span class="inference-node"><b>V1–V24</b><small>24 range readings</small></span><span class="inference-arrow" aria-hidden="true">→</span><div class="inference-model-bank" aria-label="Six compared classifiers"><span>Dummy baseline</span><span>Logistic Regression</span><span>RBF SVM</span><span>K-Nearest Neighbors</span><span>Random Forest</span><span>Gradient Boosting <b>· top CV macro-F1</b></span></div><span class="inference-arrow" aria-hidden="true">→</span><span class="inference-node inference-output"><b>Predicted action 1–4</b><small>each classifier returns a movement label</small></span></div><p class="pipeline-limit"><b>Scope:</b> compare the six classifiers on the same sensor snapshot. Gradient Boosting had the highest training-CV macro-F1 in this run; a predicted action is not a route plan or a guarantee of collision-free, goal-reaching navigation.</p></div>
         <figcaption>Preprocessing and model selection use only the training split. The held-out test split estimates final classification performance; simulation results are a separate evaluation.</figcaption>
       </figure>
     </section>
